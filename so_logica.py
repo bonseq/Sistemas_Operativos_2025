@@ -54,15 +54,15 @@ def revisar_suspendidos(cola_suspendidos, cola_listos, particiones_usuario, grad
             p.estado = "Listo"
             cola_listos.append(p)
             cola_suspendidos.remove(p)
-            # (Quitamos el print de aquí, la GUI se encargará de reportar)
+    #print
             return True
     return False
 
-# --- NUEVA CLASE SimuladorManager ---
+# eto e para el gui(so)
 class SimuladorManager:
     
     def __init__(self, procesos_iniciales, particiones_iniciales, grado_multi):
-        # Guardamos el estado de la simulación aquí
+        # guardar el estado de la simulacion 
         self.tiempo = 0
         self.cpu = None
         self.cola_listos = []
@@ -79,20 +79,20 @@ class SimuladorManager:
         self.grado_multiprogramacion = grado_multi
         
         self.simulacion_activa = True
-        self.log_eventos = ["Inicio de Simulación"] # Un log para la GUI
+        self.log_eventos = ["Inicio de Simulación"] # un log para el guiso
 
     def tick(self):
         """Avanza la simulación UN solo tick de tiempo."""
         
-        # Si ya no hay nada que hacer, no avances
+        #remirar esto
         if not (self.procesos_por_llegar or self.cola_listos or self.cola_suspendidos or self.cpu):
             self.simulacion_activa = False
             self.log_eventos.append(f"t={self.tiempo}: Fin de Simulación.")
             return self.get_estado_actual()
 
-        self.log_eventos = [] # Limpiamos el log de eventos del tick anterior
+        self.log_eventos = [] # Limpiar de eventos del tick anterior
         
-        # 1. ¿Llegaron procesos nuevos?
+        # llegaron procesos nuevos?
         while self.procesos_por_llegar and self.procesos_por_llegar[0].arribo == self.tiempo:
             p = self.procesos_por_llegar.pop(0)
             self.log_eventos.append(f"t={self.tiempo}: Llega {p.pid} (tam={p.tam}K, irrup={p.irrupcion}s)")
@@ -112,7 +112,7 @@ class SimuladorManager:
                 self.cola_suspendidos.append(p)
                 self.log_eventos.append(f"  {p.pid} -> Suspendido (Sin memoria/Multiprogramación)")
 
-        # 2. ¿Terminó el proceso en CPU?
+        #termino el proceso en CPU?
         if self.cpu and self.cpu.t_restante == 0:
             self.cpu.estado = "Terminado"
             self.cpu.t_fin = self.tiempo
@@ -126,7 +126,7 @@ class SimuladorManager:
             if revisar_suspendidos(self.cola_suspendidos, self.cola_listos, self.particiones_usuario, self.grado_multiprogramacion, self.tiempo):
                 self.log_eventos.append(f"  Proceso de suspendidos pasó a listos.")
 
-        # 3. Lógica SRTF
+        #logica SRTF
         proceso_mas_corto_listo = None
         if self.cola_listos:
             proceso_mas_corto_listo = min(self.cola_listos, key=lambda p: p.t_restante)
@@ -151,7 +151,7 @@ class SimuladorManager:
                 if self.cpu.t_inicio is None:
                     self.cpu.t_inicio = self.tiempo
         
-        # 4. Avanzar el tiempo (Tick)
+      #anzar el tiempo
         for p in self.cola_listos:
             p.t_espera += 1
         if self.cpu:
@@ -164,7 +164,7 @@ class SimuladorManager:
     def get_estado_actual(self):
         """Devuelve un diccionario con el estado actual para la GUI."""
         return {
-            "tiempo": self.tiempo -1, # Devolvemos el tiempo que *acaba* de pasar
+            "tiempo": self.tiempo -1,
             "cpu": self.cpu.pid if self.cpu else "Ociosa",
             "cpu_restante": self.cpu.t_restante if self.cpu else 0,
             "cola_listos": [p.pid for p in self.cola_listos],
