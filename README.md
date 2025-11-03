@@ -26,19 +26,44 @@ El simulador reproduce el **ciclo de vida de un proceso** desde su ingreso al si
   - Estadísticas finales (tiempos de espera, retorno y rendimiento del sistema).
 
 ---
+🧰 Uso de la librería heapq
+
+La librería estándar heapq de Python se utiliza para implementar de forma eficiente la cola de prioridad del planificador SRTF.
+
+🔹 ¿Por qué se usa?
+
+El algoritmo SRTF (Shortest Remaining Time First) necesita seleccionar en todo momento el proceso con menor tiempo restante para ejecutarlo.
+En lugar de ordenar la lista de procesos en cada paso, heapq permite mantener una min-heap (montículo mínimo) donde la raíz siempre es el proceso con el menor valor (en este caso, el menor tiempo restante).
+
+🔹 Ventajas
+
+📈 Inserción y extracción en O(log n).
+
+⚙️ No requiere ordenar manualmente cada vez.
+
+🧠 Permite manejar interrupciones y llegadas de nuevos procesos sin perder eficiencia.
+
 
 ## 📁 Estructura del proyecto
 📂 Simulador-Memoria-Procesos/
 ├── main.py # Programa principal del simulador
 ├── proceso.py # Clase que define un proceso
+
 ├── particion.py # Clase que define una partición de memoria
+
 ├── planificador.py # Lógica del algoritmo SRTF
+
 ├── memoria.py # Gestión de particiones y asignación Best-Fit
+
 ├── procesos.txt # Archivo de entrada con procesos de prueba
+
 ├── README.md # Este archivo :)
-└── docs/
+
+    └── docs/
+
 ├── howto.pdf # Guía de uso para ejecutar el simulador
-└── informe_final.pdf # Informe con resultados y conclusiones
+
+    └── informe_final.pdf # Informe con resultados y conclusiones
 
 El simulador leerá automáticamente el archivo procesos.txt y mostrará los eventos de la simulación paso a paso:
 
@@ -53,6 +78,7 @@ Finalización de la simulación con informe estadístico.
 🧰 Herramientas utilizadas
 
 🐍 Python 3.10
+    ⚙️ heapq (cola de prioridad para SRTF)
 
 📋 Trello (para seguimiento del proyecto)
 
