@@ -31,8 +31,8 @@ class Particion:  #clase particion
             return self.tam - self.proceso.tam
         return 0
 
-    def __repr__(self):  #metodo de depuracion de python  y retornar el calor de id, tamaño  y fragmentacio
-        proc_id = self.proceso.pid if hasattr(self.proceso, 'pid') else (self.proceso if self.proceso else "Libre")
+    def __repr__(self):  #define como se muestra la partición textual y retorna el valor de id, tamaño  y fragmentacion, mas que nada para el GUI
+        proc_id = self.proceso.pid if hasattr(self.proceso, 'pid') else (self.proceso if self.proceso else "Libre") #detectar si hay un proceso esta en x particion y que no sea la del SO, porque ella no tiene PID(Auqnue no se si si deberia)
         return f"Part {self.idp} ({self.tam}K): Proc={proc_id}, Frag={self.frag_interna()}K"
 
 
@@ -40,23 +40,22 @@ def best_fit(proceso, particiones_usuario):
     posibles = [p for p in particiones_usuario if p.libre() and p.tam >= proceso.tam]
     if not posibles:
         return None
-    return min(posibles, key=lambda x: x.tam)
+    return min(posibles, key=lambda x: x.tam) #buscar elemento minimo de lo que retorne posibles
 
 def revisar_suspendidos(cola_suspendidos, cola_listos, particiones_usuario, grado_multiprogramacion, tiempo):
     for p in sorted(cola_suspendidos, key=lambda x: x.arribo):
         procesos_en_memoria = len([x for x in particiones_usuario if not x.libre()])
         if procesos_en_memoria >= grado_multiprogramacion:
-            break
-        particion_asignada = best_fit(p, particiones_usuario)
+            break  #corta ya que hay 5 o mas procesos
+        particion_asignada = best_fit(p, particiones_usuario) #se paso el break por encima asi que acomoda suspedido con besfir()
         if particion_asignada:
             particion_asignada.proceso = p
             p.particion = particion_asignada
             p.estado = "Listo"
             cola_listos.append(p)
             cola_suspendidos.remove(p)
-    #print
-            return True
-    return False
+            return True #(devulve al if haciendo que solo se cargue UN proceso y salga de aca)
+    return False#en el caso de que no se pudiera traer a nadie() 
 
 # eto e para el gui(so)
 class SimuladorManager:
@@ -83,14 +82,14 @@ class SimuladorManager:
 
     def tick(self):
         """Avanza la simulación UN solo tick de tiempo."""
-        
+
         #remirar esto
         if not (self.procesos_por_llegar or self.cola_listos or self.cola_suspendidos or self.cpu):
             self.simulacion_activa = False
             self.log_eventos.append(f"t={self.tiempo}: Fin de Simulación.")
             return self.get_estado_actual()
 
-        self.log_eventos = [] # Limpiar de eventos del tick anterior
+        self.log_eventos = [] # limpiar de eventos del tick anterior
         
         # llegaron procesos nuevos?
         while self.procesos_por_llegar and self.procesos_por_llegar[0].arribo == self.tiempo:
@@ -113,7 +112,7 @@ class SimuladorManager:
                 self.log_eventos.append(f"  {p.pid} -> Suspendido (Sin memoria/Multiprogramación)")
 
         #termino el proceso en CPU?
-        if self.cpu and self.cpu.t_restante == 0:
+        if self.cpu and self.cpu.t_restante == 0: 
             self.cpu.estado = "Terminado"
             self.cpu.t_fin = self.tiempo
             self.terminados.append(self.cpu)
@@ -161,15 +160,15 @@ class SimuladorManager:
         
         return self.get_estado_actual()
 
-    def get_estado_actual(self):
+    def get_estado_actual(self):  #resumen de que pasa en cada tick
         """Devuelve un diccionario con el estado actual para la GUI."""
         return {
-            "tiempo": self.tiempo -1,
-            "cpu": self.cpu.pid if self.cpu else "Ociosa",
+            "tiempo": self.tiempo, #-1 
+            "cpu": self.cpu.pid if self.cpu else "no hay procesos",
             "cpu_restante": self.cpu.t_restante if self.cpu else 0,
             "cola_listos": [p.pid for p in self.cola_listos],
             "cola_suspendidos": [p.pid for p in self.cola_suspendidos],
-            "particiones": [str(p) for p in self.particiones],
+            "particiones": [str(p) for p in self.particiones],  #srt se usa para mostras las particiones
             "log_eventos": self.log_eventos,
             "simulacion_activa": self.simulacion_activa
         }
