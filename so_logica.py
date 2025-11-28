@@ -123,7 +123,7 @@ class SimuladorManager:
             self.cpu = None
             
             if revisar_suspendidos(self.cola_suspendidos, self.cola_listos, self.particiones_usuario, self.grado_multiprogramacion, self.tiempo):
-                self.log_eventos.append(f"  Proceso de suspendidos pasó a listos.")
+                self.log_eventos.append(f"proceso de suspendidos pasó a listos.")
 
         #logica SRTF
         proceso_mas_corto_listo = None
@@ -137,7 +137,7 @@ class SimuladorManager:
                 self.cpu.estado = "Ejecución"
                 if self.cpu.t_inicio is None:
                     self.cpu.t_inicio = self.tiempo
-                self.log_eventos.append(f"t={self.tiempo}: CPU (Ociosa) -> {self.cpu.pid}")
+                self.log_eventos.append(f"t={self.tiempo}: CPU (ociosa) -> {self.cpu.pid}")
         
         elif proceso_mas_corto_listo:
             if proceso_mas_corto_listo.t_restante < self.cpu.t_restante:
@@ -163,11 +163,12 @@ class SimuladorManager:
     def get_estado_actual(self):  #resumen de que pasa en cada tick
         """devuelve un diccionario con el estado actual para la GUI."""
         return {
-            "tiempo": self.tiempo, #-1 
+            "tiempo": self.tiempo -1, 
             "cpu": self.cpu.pid if self.cpu else "no hay procesos",
             "cpu_restante": self.cpu.t_restante if self.cpu else 0,
             "cola_listos": [p.pid for p in self.cola_listos],
             "cola_suspendidos": [p.pid for p in self.cola_suspendidos],
+            "nuevos": [f"{p.pid}(t={p.arribo})" for p in self.procesos_por_llegar],
             "particiones": [str(p) for p in self.particiones],  #srt se usa para mostras las particiones
             "log_eventos": self.log_eventos,
             "simulacion_activa": self.simulacion_activa
