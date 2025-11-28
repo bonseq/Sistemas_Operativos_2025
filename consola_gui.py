@@ -1,7 +1,7 @@
 import os
 import sys
 import time 
-from so_logica import Proceso, Particion, SimuladorManager
+from so_logica import Proceso, Particion, Simulador
 
 particiones_iniciales = [
     Particion("SO", 0, 100),
@@ -9,7 +9,7 @@ particiones_iniciales = [
     Particion("M", 350, 150),
     Particion("P", 500, 50),
 ]
-
+#documentacion : https://docs.google.com/document/d/1GoweT3P1DDfHdaz83uL-rqf13k6qRlM4cwD-WfkmuLo/edit?usp=sharing
 # lista_procesos_inicial = [
 #     Proceso("P1", 50, 0, 8),
 #     Proceso("P2", 150, 1, 4),
@@ -39,10 +39,10 @@ def cargar_desde_archivo(nombre_archivo):
                 if len(datos) == 4:
                     try:
                         pid = datos[0].strip()
-                        tam = int(datos[1].strip())
-                        arribo = int(datos[2].strip())
+                        arribo = int(datos[1].strip())                        
+                        tam = int(datos[2].strip())
                         irrupcion = int(datos[3].strip())
-                        procesos.append(Proceso(pid, tam, arribo, irrupcion))
+                        procesos.append(Proceso(pid, arribo, tam, irrupcion))
                         print(f"  [Línea {i+1}] OK: {pid}")
                     except ValueError:
                         print(f"  [Línea {i+1}] ERROR DE NUMEROS: '{linea_limpia}' (Revise que no haya letras donde van números)")
@@ -109,7 +109,7 @@ def main():
         input("Enter para salir...")
         return
 
-    simulador = SimuladorManager(lista_procesos, particiones_iniciales, GRADO_MULTIPROG)
+    simulador = Simulador(lista_procesos, particiones_iniciales, GRADO_MULTIPROG)
     
     print("\nIniciando simulación automática en 2 segundos...")
     time.sleep(2)
@@ -136,8 +136,7 @@ def main():
                 print("\n SIMULACIÓN FINALIZADA")
                 break
             
-            # 3. ESPERA AUTOMÁTICA cambiar a 2 para ir lento o a uno para ir rapido
-            time.sleep(1) 
+            input("\nenter para avanzar al siguiente instante...")
 
     except KeyboardInterrupt:
         print("\n\n Simulación interrumpida por el usuario.")

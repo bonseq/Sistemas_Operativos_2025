@@ -1,10 +1,10 @@
 # so_logic.py
-
+#documentacion : https://docs.google.com/document/d/1GoweT3P1DDfHdaz83uL-rqf13k6qRlM4cwD-WfkmuLo/edit?usp=sharing
 class Proceso:  #clase proceso
     def __init__(self, pid, tam, arribo, irrupcion):
         self.pid = pid
-        self.tam = tam
         self.arribo = arribo
+        self.tam = tam
         self.irrupcion = irrupcion
         self.t_restante = irrupcion
         self.estado = "Nuevo"
@@ -19,7 +19,6 @@ class Proceso:  #clase proceso
 class Particion:  #clase particion
     def __init__(self, idp, inicio, tam):
         self.idp = idp
-        self.inicio = inicio
         self.tam = tam
         self.proceso = None
 
@@ -55,10 +54,10 @@ def revisar_suspendidos(cola_suspendidos, cola_listos, particiones_usuario, grad
             cola_listos.append(p)
             cola_suspendidos.remove(p)
             return True #(devulve al if haciendo que solo se cargue UN proceso y salga de aca)
-    return False#en el caso de que no se pudiera traer a nadie() 
+    return False #en el caso de que no se pudiera traer a nadie() 
 
 # eto e para el gui(so)
-class SimuladorManager:
+class Simulador:
     
     def __init__(self, procesos_iniciales, particiones_iniciales, grado_multi):
         # guardar el estado de la simulacion 
@@ -81,7 +80,7 @@ class SimuladorManager:
         self.log_eventos = ["Inicio de Simulación"] # un log para el guiso
 
     def tick(self):
-        """Avanza la simulación UN solo tick de tiempo."""
+        """avanza la simulación UN solo tick de tiempo."""
 
         #remirar esto
         if not (self.procesos_por_llegar or self.cola_listos or self.cola_suspendidos or self.cpu):
@@ -137,7 +136,7 @@ class SimuladorManager:
                 self.cpu.estado = "Ejecución"
                 if self.cpu.t_inicio is None:
                     self.cpu.t_inicio = self.tiempo
-                self.log_eventos.append(f"t={self.tiempo}: CPU (ociosa) -> {self.cpu.pid}")
+                self.log_eventos.append(f"t={self.tiempo}: CPU -> {self.cpu.pid}")
         
         elif proceso_mas_corto_listo:
             if proceso_mas_corto_listo.t_restante < self.cpu.t_restante:
@@ -156,8 +155,23 @@ class SimuladorManager:
         if self.cpu:
             self.cpu.t_restante -= 1
 
+        #deadlock
         self.tiempo += 1
-        
+        if not self.cpu and not self.cola_listos and not self.procesos_por_llegar and self.cola_suspendidos:
+            
+            particiones_libres = [p for p in self.particiones_usuario if p.libre()]
+            nadie_entra = True
+            
+            # chequea si alguno de los suspendidos cabe en lo que hay libre
+            for p in self.cola_suspendidos:
+                if best_fit(p, particiones_libres):
+                    nadie_entra = False
+                    break
+            
+            if nadie_entra:
+                self.log_eventos.append("Procesos suspendidos demasiado grandes para la memoria libre.")
+                self.simulacion_activa = False # cortar simulacion
+
         return self.get_estado_actual()
 
     def get_estado_actual(self):  #resumen de que pasa en cada tick
