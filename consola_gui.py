@@ -29,13 +29,13 @@ def cargar_desde_archivo(nombre_archivo):
                     arribo = int(datos[2].strip())
                     irrupcion = int(datos[3].strip())
                     procesos.append(Proceso(pid, tam, arribo, irrupcion))
-        print(f"✅ Se cargaron {len(procesos)} procesos correctamente desde '{nombre_archivo}'.")
+        print(f" Se cargaron {len(procesos)} procesos correctamente desde '{nombre_archivo}'.")
         return procesos
     except FileNotFoundError:
-        print(f"❌ ERROR: No se encontró el archivo '{nombre_archivo}'.")
+        print(f" ERROR: No se encontró el archivo '{nombre_archivo}'.")
         return []
     except Exception as e:
-        print(f"❌ ERROR al leer el archivo: {e}")
+        print(f" ERROR al leer el archivo: {e}")
         return []
 
 # --- FUNCIONES DE VISUALIZACIÓN ---
@@ -66,7 +66,7 @@ def imprimir_tabla_particiones(particiones_str):
 
 def mostrar_estadisticas_finales(terminados, tiempo_total):
     print("\n\n==========================================")
-    print("       📊 INFORME ESTADÍSTICO FINAL       ")
+    print("          INFORME ESTADÍSTICO FINAL       ")
     print("==========================================")
     
     if not terminados:
@@ -112,7 +112,7 @@ def main():
         return
 
     # 2. Iniciar Simulador
-    simulador = SimuladorManager(lista_procesos, particiones_iniciales, GRADO_MULTIPROG)
+    simulador = SimuladorManager(lista_procesos, particiones_iniciales, GRADO_MULTIPROG) #instancia de clase SimuladorManager
     
     input("\nPresiona ENTER para iniciar la simulación paso a paso...")
 
@@ -121,26 +121,26 @@ def main():
         estado = simulador.tick()
         limpiar_pantalla()
 
-        print(f"⏱️  TIEMPO: {estado['tiempo']}")
+        print(f"⏱ TIEMPO: {estado['tiempo']}")
         print("-" * 30)
 
         # CPU
-        print(f"💻 CPU ACTUAL: {estado['cpu']} (Restante: {estado['cpu_restante']})")
+        print(f" CPU ACTUAL: {estado['cpu']} (Restante: {estado['cpu_restante']})")
 
         # Colas
-        print(f"\n📥 COLA DE LISTOS: {estado['cola_listos']}")
-        print(f"💤 COLA SUSPENDIDOS: {estado['cola_suspendidos']}")
+        print(f"\n COLA DE LISTOS: {estado['cola_listos']}")
+        print(f" COLA SUSPENDIDOS: {estado['cola_suspendidos']}")
 
         # Memoria
         imprimir_tabla_particiones(estado['particiones'])
 
         # Log
-        print("\n📝 EVENTOS:")
+        print("\n EVENTOS:")
         for evento in estado['log_eventos']:
             print(f" > {evento}")
         
         if not estado['simulacion_activa']:
-            print("\n🛑 SIMULACIÓN FINALIZADA")
+            print("\n SIMULACIÓN FINALIZADA")
             break
         
         input("\n[ENTER] para siguiente tick...")

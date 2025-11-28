@@ -161,7 +161,7 @@ class SimuladorManager:
         return self.get_estado_actual()
 
     def get_estado_actual(self):  #resumen de que pasa en cada tick
-        """Devuelve un diccionario con el estado actual para la GUI."""
+        """devuelve un diccionario con el estado actual para la GUI."""
         return {
             "tiempo": self.tiempo, #-1 
             "cpu": self.cpu.pid if self.cpu else "no hay procesos",
