@@ -101,8 +101,8 @@ def main():
     limpiar_pantalla()
     print("=== SIMULADOR S.O. (Automático) ===")
     
-    nombre = input("Ingrese archivo de procesos (Enter para 'procesos.txt'): ")
-    if not nombre: nombre = "procesos.txt"
+    nombre = input("Ingrese archivo de procesos(debe ser un .txt): ")
+    #if not nombre: nombre = "procesos.txt"
     
     lista_procesos = cargar_desde_archivo(nombre)
     if not lista_procesos:
