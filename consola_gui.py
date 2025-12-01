@@ -2,6 +2,107 @@ import os
 import sys
 import time 
 from so_logica import Proceso, Particion, Simulador
+from colorama import Fore, Style, init
+from datetime import datetime
+import getpass
+
+GRUPO = "(que)S.O."
+FACULTAD = "UTN - Universidad Tecnológica Nacional"
+REGIONAL = "Facultad Regional Resistencia"
+INTEGRANTES = [
+     "Arriazu, Nerea Micaela",
+      "Bonguan, Juliana Agostina",
+     "Centurión, Constanza Abril",
+     "Fernández Calvi, Gustavo Félix",
+     "Valussi Melendes, Fabrizio Francisco",
+ ]
+
+def print_ascii_art():
+    """Pingüino de queso + título del simulador"""
+    print(Fore.YELLOW + Style.BRIGHT + r"""
+          
+        
+          
+                          ████████████████                      
+                        ██                ████████              
+                      ██                          ████████      
+                    ██                                    ████  
+                  ██░░██                                    ████
+                ██░░░░██                              ██████  ██
+              ██  ████                        ████████        ██
+            ██        ██████            ██████                ██
+          ██        ██░░░░░░██    ██████                  ██████
+        ██        ██░░░░░░░░░░████                      ██░░██  
+      ██          ██░░░░░░░░░░██                        ██░░██  
+    ██      ████████░░░░░░░░░░██                          ██████
+  ██  ██████      ██░░░░░░░░░░██                              ██
+  ████              ██░░░░░░██          ████                  ██
+██                    ██████          ██░░░░██          ████████
+██                                    ██░░░░██        ██░░░░██  
+██                                      ████        ██░░░░██    
+████████        ██                                  ██░░░░██    
+  ██░░██      ██░░██                                ██░░░░██    
+  ██░░░░██      ██                                    ██░░░░██  
+    ▓▓░░██                ▓▓████▓▓                    ░░▓▓████  
+  ██░░░░██              ██░░░░░░░░██                        ██  
+  ██░░██              ██░░░░░░░░░░░░██                ██████    
+████████            ██░░░░░░██████░░░░██      ████████          
+██                  ██░░░░██      ████████████                  
+██                  ██░░██                                      
+██                  ▒▒▒▒                                        
+██                  ▓▓██                                        
+  ██████████████████ 
+  
+
+   /$$$                               /$$$    /$$$$$$      /$$$$$$    
+  /$$_/                              |_  $$  /$$__  $$    /$$__  $$   
+ /$$/    /$$$$$$  /$$   /$$  /$$$$$$   \  $$| $$  \__/   | $$  \ $$   
+| $$    /$$__  $$| $$  | $$ /$$__  $$   | $$|  $$$$$$    | $$  | $$   
+| $$   | $$  \ $$| $$  | $$| $$$$$$$$   | $$ \____  $$   | $$  | $$   
+|  $$  | $$  | $$| $$  | $$| $$_____/   /$$/ /$$  \ $$   | $$  | $$   
+ \  $$$|  $$$$$$$|  $$$$$$/|  $$$$$$$ /$$$/ |  $$$$$$//$$|  $$$$$$//$$
+  \___/ \____  $$ \______/  \_______/|___/   \______/|__/ \______/|__/
+             | $$                                                     
+             | $$                                                     
+             |__/                  
+          
+""" + Style.RESET_ALL)
+
+    print_hacker_status()
+
+    ancho = 100
+    print(Fore.CYAN + Style.BRIGHT)
+    print("SISTEMAS OPERATIVOS".center(ancho))
+    print("Gestión de Memoria con Particiones Fijas, Planificación SRTF y Algoritmo Best-Fit".center(ancho))
+    print(("-" * 80).center(ancho))
+    print(Style.RESET_ALL)
+
+def print_hacker_status():
+    """Línea tipo [ACCESS GRANTED] con fecha, hora y usuario"""
+    usuario = getpass.getuser()
+    hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ancho = 100
+    mensaje = (
+        Fore.GREEN + Style.BRIGHT + f"[ACCESS GRANTED] ({hora})  " +
+        Fore.CYAN + f"[SIMULADOR LISTO] - Bienvenido, {usuario} | Grupo {GRUPO}" +
+        Style.RESET_ALL
+    )
+    print(mensaje.center(ancho))
+
+def print_banner():
+    """Cuadro con nombre del grupo, facultad y lista de integrantes"""
+    ancho = 60
+    print()
+    print(Fore.CYAN + "╔" + "═" * (ancho - 2) + "╗")
+    print(Fore.CYAN + "║" + Style.BRIGHT + f"{'Simulador de S.O. - ' + GRUPO:^58}" + Style.RESET_ALL + Fore.CYAN + "║")
+    print(Fore.CYAN + "║" + f"{FACULTAD:^58}" + "║")
+    print(Fore.CYAN + "║" + f"{REGIONAL:^58}" + "║")
+    print(Fore.CYAN + "╠" + "═" * (ancho - 2) + "╣")
+    print(Fore.CYAN + "║" + Style.BRIGHT + "  Integrantes:".ljust(58) + Style.RESET_ALL + Fore.CYAN + "║")
+    for nombre in INTEGRANTES:
+        print(Fore.CYAN + "║" + f"    {nombre}".ljust(58) + "║")
+    print(Fore.CYAN + "╚" + "═" * (ancho - 2) + "╝" + Style.RESET_ALL)
+    print()
 
 particiones_iniciales = [
     Particion("SO", 0, 100),
@@ -99,7 +200,12 @@ def mostrar_estadisticas_finales(terminados, tiempo_total):
 # --- MAIN LOOP ---
 def main():
     limpiar_pantalla()
-    print("=== SIMULADOR S.O. (Automático) ===")
+    init(autoreset=True)
+        
+    print_ascii_art()
+    print_banner()
+    
+    print("=========== SIMULADOR S.O. (Automático) ===========")
     
     nombre = input("Ingrese archivo de procesos(debe ser un .txt): ")
     #if not nombre: nombre = "procesos.txt"
