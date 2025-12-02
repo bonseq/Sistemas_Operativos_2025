@@ -110,8 +110,8 @@ particiones_iniciales = [
     Particion("M", 350, 150),
     Particion("P", 500, 50),
 ]
-#documentacion : https://docs.google.com/document/d/1GoweT3P1DDfHdaz83uL-rqf13k6qRlM4cwD-WfkmuLo/edit?usp=sharing
-# lista_procesos_inicial = [
+#documentacion  para el euipo: https://docs.google.com/document/d/1GoweT3P1DDfHdaz83uL-rqf13k6qRlM4cwD-WfkmuLo/edit?usp=sharing
+# lista_procesos_inicial = particionesd de prueba q se usaron entes de t6ener la funcion cargar_desde_archivo [
 #     Proceso("P1", 50, 0, 8),
 #     Proceso("P2", 150, 1, 4),
 #     Proceso("P3", 200, 2, 9),
