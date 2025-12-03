@@ -1,5 +1,4 @@
 # so_logic.py
-#documentacion : https://docs.google.com/document/d/1GoweT3P1DDfHdaz83uL-rqf13k6qRlM4cwD-WfkmuLo/edit?usp=sharing
 class Proceso:  #clase proceso
     def __init__(self, pid, arribo, tam, irrupcion):
         self.pid = pid
