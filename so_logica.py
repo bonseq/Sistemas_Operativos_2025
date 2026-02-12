@@ -1,5 +1,5 @@
-# so_logic.py
-class Proceso:  #clase proceso
+# so_logica.py
+class Proceso:
     def __init__(self, pid, arribo, tam, irrupcion):
         self.pid = pid
         self.arribo = arribo
@@ -10,12 +10,12 @@ class Proceso:  #clase proceso
         self.particion = None
         self.t_inicio = None
         self.t_fin = None
-        self.t_espera = 0
+        self.t_espera = 0  # Re-agregado para que el GUI no explote
 
     def __repr__(self):
-        return f"P{self.pid}({self.estado}, t_rest={self.t_restante})"
+        return f"{self.pid}({self.estado}, rest={self.t_restante})"
 
-class Particion:  #clase particion
+class Particion:
     def __init__(self, idp, inicio, tam):
         self.idp = idp
         self.tam = tam
@@ -29,160 +29,118 @@ class Particion:  #clase particion
             return self.tam - self.proceso.tam
         return 0
 
-    def __repr__(self):  #define como se muestra la partición textual y retorna el valor de id, tamaño  y fragmentacion, mas que nada para el GUI
-        proc_id = self.proceso.pid if hasattr(self.proceso, 'pid') else (self.proceso if self.proceso else "Libre") #detectar si hay un proceso esta en x particion y que no sea la del SO, porque ella no tiene PID(Auqnue no se si si deberia)
+    def __repr__(self):
+        proc_id = self.proceso.pid if hasattr(self.proceso, 'pid') else (self.proceso if self.proceso else "Libre")
         return f"Part {self.idp} ({self.tam}K): Proc={proc_id}, Frag={self.frag_interna()}K"
-
 
 def best_fit(proceso, particiones_usuario):
     posibles = [p for p in particiones_usuario if p.libre() and p.tam >= proceso.tam]
     if not posibles:
         return None
-    return min(posibles, key=lambda x: x.tam) #buscar elemento minimo de lo que retorne posibles
+    return min(posibles, key=lambda x: x.tam)
 
-def revisar_suspendidos(cola_suspendidos, cola_listos, particiones_usuario, grado_multiprogramacion, tiempo):
-    for p in sorted(cola_suspendidos, key=lambda x: x.arribo):
-        procesos_en_memoria = len([x for x in particiones_usuario if not x.libre()])
-        if procesos_en_memoria >= grado_multiprogramacion:
-            break  #corta ya que hay 5 o mas procesos
-        particion_asignada = best_fit(p, particiones_usuario) #se paso el break por encima asi que acomoda suspedido con besfir()
-        if particion_asignada:
-            particion_asignada.proceso = p
-            p.particion = particion_asignada
-            p.estado = "Listo"
-            cola_listos.append(p)
-            cola_suspendidos.remove(p)
-            return True #(devulve al if haciendo que solo se cargue UN proceso y salga de aca)
-    return False #en el caso de que no se pudiera traer a nadie() 
-
-# eto e para el gui(so)
 class Simulador:
-    
     def __init__(self, procesos_iniciales, particiones_iniciales, grado_multi):
-        # guardar el estado de la simulacion 
         self.tiempo = 0
         self.cpu = None
         self.cola_listos = []
         self.cola_suspendidos = []
         self.terminados = []
-        
         self.procesos_por_llegar = sorted(procesos_iniciales, key=lambda p: p.arribo)
-        
         self.particiones = particiones_iniciales
-        self.particion_so = self.particiones[0]
-        self.particion_so.proceso = "SO"
+        self.particiones[0].proceso = "SO" 
         self.particiones_usuario = [p for p in self.particiones if p.idp != "SO"]
-        
         self.grado_multiprogramacion = grado_multi
-        
         self.simulacion_activa = True
-        self.log_eventos = ["Inicio de Simulación"] # un log para el guiso
+        self.log_eventos = ["Inicio de Simulación"]
 
+    def get_procesos_en_sistema(self):
+        count = 0
+        if self.cpu: count += 1
+        count += len(self.cola_listos)
+        count += len(self.cola_suspendidos)
+        return count
+    
     def tick(self):
-        """avanza la simulación UN solo tick de tiempo."""
-
-        #remirar esto
         if not (self.procesos_por_llegar or self.cola_listos or self.cola_suspendidos or self.cpu):
             self.simulacion_activa = False
-            self.log_eventos.append(f"t={self.tiempo}: Fin de Simulación.")
             return self.get_estado_actual()
 
-        self.log_eventos = [] # limpiar de eventos del tick anterior
-        
-        # llegaron procesos nuevos?
-        while self.procesos_por_llegar and self.procesos_por_llegar[0].arribo == self.tiempo:
-            p = self.procesos_por_llegar.pop(0)
-            self.log_eventos.append(f"t={self.tiempo}: Llega {p.pid} (tam={p.tam}K, irrup={p.irrupcion}s)")
-            p.estado = "Nuevo"
-            
-            procesos_en_memoria = len([x for x in self.particiones_usuario if not x.libre()])
-            particion_asignada = best_fit(p, self.particiones_usuario)
-            
-            if particion_asignada and procesos_en_memoria < self.grado_multiprogramacion:
-                particion_asignada.proceso = p
-                p.particion = particion_asignada
-                p.estado = "Listo"
-                self.cola_listos.append(p)
-                self.log_eventos.append(f"  {p.pid} asignado a {particion_asignada.idp} -> Listo")
+        self.log_eventos = []
+
+        # 1. Admisión
+        while self.procesos_por_llegar and self.procesos_por_llegar[0].arribo <= self.tiempo:
+            if self.get_procesos_en_sistema() < self.grado_multiprogramacion:
+                p = self.procesos_por_llegar.pop(0)
+                particion_ok = best_fit(p, self.particiones_usuario)
+                if particion_ok:
+                    particion_ok.proceso = p
+                    p.particion = particion_ok
+                    p.estado = "Listo"
+                    self.cola_listos.append(p)
+                else:
+                    p.estado = "Suspendido"
+                    self.cola_suspendidos.append(p)
             else:
-                p.estado = "Listo y Suspendido"
-                self.cola_suspendidos.append(p)
-                self.log_eventos.append(f"  {p.pid} -> Suspendido (Sin memoria/Multiprogramación)")
+                break
 
-        #termino el proceso en CPU?
-        if self.cpu and self.cpu.t_restante == 0: 
-            self.cpu.estado = "Terminado"
-            self.cpu.t_fin = self.tiempo
-            self.terminados.append(self.cpu)
-            self.log_eventos.append(f"t={self.tiempo}: {self.cpu.pid} finalizó.")
-            
-            self.cpu.particion.proceso = None
-            self.cpu.particion = None
-            self.cpu = None
-            
-            if revisar_suspendidos(self.cola_suspendidos, self.cola_listos, self.particiones_usuario, self.grado_multiprogramacion, self.tiempo):
-                self.log_eventos.append(f"proceso de suspendidos pasó a listos.")
-
-        #logica SRTF
-        proceso_mas_corto_listo = None
+        # 2. Planificación SRTF
         if self.cola_listos:
-            proceso_mas_corto_listo = min(self.cola_listos, key=lambda p: p.t_restante)
-
-        if self.cpu is None:
-            if proceso_mas_corto_listo:
-                self.cpu = proceso_mas_corto_listo
-                self.cola_listos.remove(self.cpu)
+            mas_corto = min(self.cola_listos, key=lambda x: x.t_restante)
+            if self.cpu is None:
+                self.cpu = mas_corto
+                self.cola_listos.remove(mas_corto)
                 self.cpu.estado = "Ejecución"
-                if self.cpu.t_inicio is None:
-                    self.cpu.t_inicio = self.tiempo
-                self.log_eventos.append(f"t={self.tiempo}: CPU -> {self.cpu.pid}")
-        
-        elif proceso_mas_corto_listo:
-            if proceso_mas_corto_listo.t_restante < self.cpu.t_restante:
-                self.log_eventos.append(f"t={self.tiempo}: {proceso_mas_corto_listo.pid} APROPIA a {self.cpu.pid}")
+                if self.cpu.t_inicio is None: self.cpu.t_inicio = self.tiempo
+            elif mas_corto.t_restante < self.cpu.t_restante:
                 self.cpu.estado = "Listo"
                 self.cola_listos.append(self.cpu)
-                self.cpu = proceso_mas_corto_listo
-                self.cola_listos.remove(self.cpu)
+                self.cpu = mas_corto
+                self.cola_listos.remove(mas_corto)
                 self.cpu.estado = "Ejecución"
-                if self.cpu.t_inicio is None:
-                    self.cpu.t_inicio = self.tiempo
-        
-      #anzar el tiempo
-        for p in self.cola_listos:
-            p.t_espera += 1
+
+        # 3. Ejecución
         if self.cpu:
             self.cpu.t_restante -= 1
+            if self.cpu.t_restante == 0:
+                self.cpu.t_fin = self.tiempo + 1
+                self.cpu.estado = "Terminado"
+                # CÁLCULO DE MÉTRICAS AQUÍ PARA EL GUI
+                retorno = self.cpu.t_fin - self.cpu.arribo
+                self.cpu.t_espera = retorno - self.cpu.irrupcion 
+                
+                self.cpu.particion.proceso = None
+                self.terminados.append(self.cpu)
+                self.log_eventos.append(f"t={self.tiempo + 1}: {self.cpu.pid} Finalizó")
+                
+                # Intentar traer suspendidos
+                for p_susp in sorted(self.cola_suspendidos, key=lambda x: x.arribo):
+                    p_target = best_fit(p_susp, self.particiones_usuario)
+                    if p_target:
+                        p_target.proceso = p_susp
+                        p_susp.particion = p_target
+                        p_susp.estado = "Listo"
+                        self.cola_listos.append(p_susp)
+                        self.cola_suspendidos.remove(p_susp)
+                        break
+                self.cpu = None
 
-        #deadlock
         self.tiempo += 1
-        if not self.cpu and not self.cola_listos and not self.procesos_por_llegar and self.cola_suspendidos:
-            
-            particiones_libres = [p for p in self.particiones_usuario if p.libre()]
-            nadie_entra = True
-            
-            # chequea si alguno de los suspendidos cabe en lo que hay libre
-            for p in self.cola_suspendidos:
-                if best_fit(p, particiones_libres):
-                    nadie_entra = False
-                    break
-            
-            if nadie_entra:
-                self.log_eventos.append("Procesos suspendidos demasiado grandes para la memoria libre.")
-                self.simulacion_activa = False # cortar simulacion
-
         return self.get_estado_actual()
 
-    def get_estado_actual(self):  #resumen de que pasa en cada tick
-        """devuelve un diccionario con el estado actual para la GUI."""
+    def get_estado_actual(self):
+        # Mantenemos todas las llaves que pide consola_gui.py
         return {
-            "tiempo": self.tiempo -1, 
-            "cpu": self.cpu.pid if self.cpu else "no hay procesos",
+            "tiempo": self.tiempo,
+            "cpu": self.cpu.pid if self.cpu else "IDLE",
             "cpu_restante": self.cpu.t_restante if self.cpu else 0,
             "cola_listos": [p.pid for p in self.cola_listos],
             "cola_suspendidos": [p.pid for p in self.cola_suspendidos],
-            "nuevos": [f"{p.pid}(t={p.arribo})" for p in self.procesos_por_llegar],
-            "particiones": [str(p) for p in self.particiones],  #srt se usa para mostras las particiones
+            "nuevos": [f"{p.pid}" for p in self.procesos_por_llegar],
+            "terminados": [p.pid for p in self.terminados],
+            "particiones": [str(part) for part in self.particiones],
             "log_eventos": self.log_eventos,
-            "simulacion_activa": self.simulacion_activa
+            "simulacion_activa": self.simulacion_activa,
+            "metricas": [] # Se puede dejar vacío si el GUI usa los objetos directamente
         }
+        

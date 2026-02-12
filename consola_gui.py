@@ -1,7 +1,7 @@
 import os
 import sys
 import time 
-from so_logica import Proceso, Particion, Simulador
+from so_logica_instancia2 import Proceso, Particion, Simulador
 from colorama import Fore, Style, init
 from datetime import datetime
 import getpass
