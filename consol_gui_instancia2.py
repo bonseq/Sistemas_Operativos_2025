@@ -127,31 +127,29 @@ def cargar_datos(nombre_archivo):
         return None
 
 def imprimir_dashboard(estado, sim):
-    """Muestra el estado del sistema con tabla de memoria alineada"""
-    print("\n" + "="*75)
+    """Muestra el estado del sistema manteniendo todo en verde y bien tabulado"""
+    # Forzamos verde desde el inicio de la función
+    print(Fore.GREEN + "\n" + "="*75)
     print(f"⏱  TIEMPO: {estado['tiempo']} | G.M.: {sim._get_procesos_en_sistema()}/5")
     print("="*75)
     
     # Panel de CPU y Colas
-    cpu_info = f"{estado['cpu']} ({estado['cpu_restante']} u.t.)"
-    print(Fore.GREEN + f" [CPU]         -> {cpu_info}")
-    print(Fore.GREEN + f" [NUEVOS]      : {estado['nuevos']}")
-    print(Fore.GREEN + f" [LISTOS]      : {estado['cola_listos']}")
-    print(Fore.GREEN + f" [SUSPENDIDOS] : {estado['cola_suspendidos']}")
+    cpu_info = f"{estado['cpu']} (Restante: {estado['cpu_restante']} u.t.)"
+    print(f" [CPU]         -> {cpu_info}")
+    print(f" [NUEVOS]      : {estado['nuevos']}")
+    print(f" [LISTOS]      : {estado['cola_listos']}")
+    print(f" [SUSPENDIDOS] : {estado['cola_suspendidos']}")
     
     # Tabla de Memoria TABULADA
-    print(Style.RESET_ALL + "\n--- ESTADO DE MEMORIA PRINCIPAL ---")
-    # Definimos el encabezado con anchos fijos: 10, 15, 10, 10
+    print("\n--- ESTADO DE MEMORIA PRINCIPAL ---")
     header = f"{'PART':<10} | {'CONTENIDO':<15} | {'TAM':<10} | {'FRAG. INT'}"
-    print(Fore.CYAN + header)
-    print(Fore.CYAN + "-" * len(header))
+    print(header)
+    print("-" * len(header))
 
-    # Iteramos sobre los objetos partición directamente para mayor control
+    # Iteramos manteniendo el color verde en cada fila
     for p in sim.particiones:
-        # 1. Identificador de partición
         p_id = str(p.idp)
         
-        # 2. Contenido (detectar si es SO, Proceso o Libre)
         if p.proceso == "SO":
             contenido = "Sistema Op."
         elif hasattr(p.proceso, 'pid'):
@@ -159,22 +157,18 @@ def imprimir_dashboard(estado, sim):
         else:
             contenido = "Libre"
         
-        # 3. Tamaños con unidad 'K'
         tam_str = f"{p.tam}K"
         frag_str = f"{p.frag_interna()}K"
         
-        # Imprimimos la fila con la misma tabulación que el header
-        # El color cambia si está ocupada o libre
-        color_fila = Fore.YELLOW if not p.libre() else Fore.WHITE
-        if p.proceso == "SO": color_fila = Fore.LIGHTBLACK_EX
-            
-        print(color_fila + f" {p_id:<9} | {contenido:<15} | {tam_str:<10} | {frag_str:<10}")
+        # Todo se imprime con Fore.GREEN implícito por el inicio de la función
+        print(f" {p_id:<9} | {contenido:<15} | {tam_str:<10} | {frag_str:<10}")
 
     # Registro de Eventos
     if estado['log_eventos']:
-        print(Style.RESET_ALL + "\nREGISTRO DE EVENTOS:")
+        print("\nREGISTRO DE EVENTOS:")
         for evento in estado['log_eventos']:
-            print(Fore.LIGHTMAGENTA_EX + f"  ➜ {evento}")
+            print(f"  ➜ {evento}")
+
 def mostrar_estadisticas(sim):
     """Muestra la tabla final de resultados"""
     print("\n\n" + "╔" + "═"*58 + "╗")
