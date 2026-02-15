@@ -1,5 +1,108 @@
 import os
 from so_logica_instancia2 import Proceso, Particion, Simulador
+import sys 
+import time
+from colorama import Fore, Style, init
+from datetime import datetime
+import getpass
+
+GRUPO = "(que)S.O."
+FACULTAD = "UTN - Universidad Tecnológica Nacional"
+REGIONAL = "Facultad Regional Resistencia"
+INTEGRANTES = [
+     "Arriazu, Nerea Micaela",
+      "Bonguan, Juliana Agostina",
+     "Centurión, Constanza Abril",
+     "Fernández Calvi, Gustavo Félix",
+     "Valussi Melendes, Fabrizio Francisco",
+ ]
+
+def print_ascii_art():
+    """Pingüino de queso + título del simulador"""
+    print(Fore.YELLOW + Style.BRIGHT + r"""
+          
+        
+          
+                          ████████████████                      
+                        ██                ████████              
+                      ██                          ████████      
+                    ██                                    ████  
+                  ██░░██                                    ████
+                ██░░░░██                              ██████  ██
+              ██  ████                        ████████        ██
+            ██        ██████            ██████                ██
+          ██        ██░░░░░░██    ██████                  ██████
+        ██        ██░░░░░░░░░░████                      ██░░██  
+      ██          ██░░░░░░░░░░██                        ██░░██  
+    ██      ████████░░░░░░░░░░██                          ██████
+  ██  ██████      ██░░░░░░░░░░██                              ██
+  ████              ██░░░░░░██          ████                  ██
+██                    ██████          ██░░░░██          ████████
+██                                    ██░░░░██        ██░░░░██  
+██                                      ████        ██░░░░██    
+████████        ██                                  ██░░░░██    
+  ██░░██      ██░░██                                ██░░░░██    
+  ██░░░░██      ██                                    ██░░░░██  
+    ▓▓░░██                ▓▓████▓▓                    ░░▓▓████  
+  ██░░░░██              ██░░░░░░░░██                        ██  
+  ██░░██              ██░░░░░░░░░░░░██                ██████    
+████████            ██░░░░░░██████░░░░██      ████████          
+██                  ██░░░░██      ████████████                  
+██                  ██░░██                                      
+██                  ▒▒▒▒                                        
+██                  ▓▓██                                        
+  ██████████████████ 
+  
+
+   /$$$                               /$$$    /$$$$$$      /$$$$$$    
+  /$$_/                              |_  $$  /$$__  $$    /$$__  $$   
+ /$$/    /$$$$$$  /$$   /$$  /$$$$$$   \  $$| $$  \__/   | $$  \ $$   
+| $$    /$$__  $$| $$  | $$ /$$__  $$   | $$|  $$$$$$    | $$  | $$   
+| $$   | $$  \ $$| $$  | $$| $$$$$$$$   | $$ \____  $$   | $$  | $$   
+|  $$  | $$  | $$| $$  | $$| $$_____/   /$$/ /$$  \ $$   | $$  | $$   
+ \  $$$|  $$$$$$$|  $$$$$$/|  $$$$$$$ /$$$/ |  $$$$$$//$$|  $$$$$$//$$
+  \___/ \____  $$ \______/  \_______/|___/   \______/|__/ \______/|__/
+             | $$                                                     
+             | $$                                                     
+             |__/                  
+          
+""" + Style.RESET_ALL)
+
+    print_hacker_status()
+
+    ancho = 100
+    print(Fore.CYAN + Style.BRIGHT)
+    print("SISTEMAS OPERATIVOS".center(ancho))
+    print("Gestión de Memoria con Particiones Fijas, Planificación SRTF y Algoritmo Best-Fit".center(ancho))
+    print(("-" * 80).center(ancho))
+    print(Style.RESET_ALL)
+
+def print_hacker_status():
+    """Línea tipo [ACCESS GRANTED] con fecha, hora y usuario"""
+    usuario = getpass.getuser()
+    hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ancho = 100
+    mensaje = (
+        Fore.GREEN + Style.BRIGHT + f"[ACCESS GRANTED] ({hora})  " +
+        Fore.CYAN + f"[SIMULADOR LISTO] - Bienvenido, {usuario} | Grupo {GRUPO}" +
+        Style.RESET_ALL
+    )
+    print(mensaje.center(ancho))
+
+def print_banner():
+    """Cuadro con nombre del grupo, facultad y lista de integrantes"""
+    ancho = 60
+    print()
+    print(Fore.CYAN + "╔" + "═" * (ancho - 2) + "╗")
+    print(Fore.CYAN + "║" + Style.BRIGHT + f"{'Simulador de S.O. - ' + GRUPO:^58}" + Style.RESET_ALL + Fore.CYAN + "║")
+    print(Fore.CYAN + "║" + f"{FACULTAD:^58}" + "║")
+    print(Fore.CYAN + "║" + f"{REGIONAL:^58}" + "║")
+    print(Fore.CYAN + "╠" + "═" * (ancho - 2) + "╣")
+    print(Fore.CYAN + "║" + Style.BRIGHT + "  Integrantes:".ljust(58) + Style.RESET_ALL + Fore.CYAN + "║")
+    for nombre in INTEGRANTES:
+        print(Fore.CYAN + "║" + f"    {nombre}".ljust(58) + "║")
+    print(Fore.CYAN + "╚" + "═" * (ancho - 2) + "╝" + Style.RESET_ALL)
+    print()
 
 def limpiar_pantalla():
     """Limpia la terminal según el sistema operativo"""
@@ -24,31 +127,54 @@ def cargar_datos(nombre_archivo):
         return None
 
 def imprimir_dashboard(estado, sim):
-    """Muestra el estado del sistema en el segundo actual"""
-    print("\n" + "="*70)
+    """Muestra el estado del sistema con tabla de memoria alineada"""
+    print("\n" + "="*75)
     print(f"⏱  TIEMPO: {estado['tiempo']} | G.M.: {sim._get_procesos_en_sistema()}/5")
-    print("="*70)
+    print("="*75)
     
     # Panel de CPU y Colas
-    print(f" [CPU] -> {estado['cpu']} (Restante: {estado['cpu_restante']} u.t.)")
-    print(f" [NUEVOS]      : {estado['nuevos']}")
-    print(f" [LISTOS]      : {estado['cola_listos']}")
-    print(f" [SUSPENDIDOS] : {estado['cola_suspendidos']}")
+    cpu_info = f"{estado['cpu']} ({estado['cpu_restante']} u.t.)"
+    print(Fore.GREEN + f" [CPU]         -> {cpu_info}")
+    print(Fore.GREEN + f" [NUEVOS]      : {estado['nuevos']}")
+    print(Fore.GREEN + f" [LISTOS]      : {estado['cola_listos']}")
+    print(Fore.GREEN + f" [SUSPENDIDOS] : {estado['cola_suspendidos']}")
     
-    # Tabla de Memoria
-    print("\n--- ESTADO DE MEMORIA PRINCIPAL ---")
-    print(f"{'PART':<6} | {'CONTENIDO':<12} | {'TAM':<8} | {'FRAG. INT'}")
-    print("-" * 50)
-    for p_str in estado['particiones']:
-        # Mostramos el string definido en la clase Particion
-        print(p_str)
+    # Tabla de Memoria TABULADA
+    print(Style.RESET_ALL + "\n--- ESTADO DE MEMORIA PRINCIPAL ---")
+    # Definimos el encabezado con anchos fijos: 10, 15, 10, 10
+    header = f"{'PART':<10} | {'CONTENIDO':<15} | {'TAM':<10} | {'FRAG. INT'}"
+    print(Fore.CYAN + header)
+    print(Fore.CYAN + "-" * len(header))
+
+    # Iteramos sobre los objetos partición directamente para mayor control
+    for p in sim.particiones:
+        # 1. Identificador de partición
+        p_id = str(p.idp)
+        
+        # 2. Contenido (detectar si es SO, Proceso o Libre)
+        if p.proceso == "SO":
+            contenido = "Sistema Op."
+        elif hasattr(p.proceso, 'pid'):
+            contenido = str(p.proceso.pid)
+        else:
+            contenido = "Libre"
+        
+        # 3. Tamaños con unidad 'K'
+        tam_str = f"{p.tam}K"
+        frag_str = f"{p.frag_interna()}K"
+        
+        # Imprimimos la fila con la misma tabulación que el header
+        # El color cambia si está ocupada o libre
+        color_fila = Fore.YELLOW if not p.libre() else Fore.WHITE
+        if p.proceso == "SO": color_fila = Fore.LIGHTBLACK_EX
+            
+        print(color_fila + f" {p_id:<9} | {contenido:<15} | {tam_str:<10} | {frag_str:<10}")
 
     # Registro de Eventos
     if estado['log_eventos']:
-        print("\nREGISTRO DE EVENTOS:")
+        print(Style.RESET_ALL + "\nREGISTRO DE EVENTOS:")
         for evento in estado['log_eventos']:
-            print(f"  ➜ {evento}")
-
+            print(Fore.LIGHTMAGENTA_EX + f"  ➜ {evento}")
 def mostrar_estadisticas(sim):
     """Muestra la tabla final de resultados"""
     print("\n\n" + "╔" + "═"*58 + "╗")
@@ -76,6 +202,9 @@ def mostrar_estadisticas(sim):
 
 def main():
     limpiar_pantalla()
+    print_ascii_art()
+    print_banner()
+    
     print("=== SIMULADOR DE SISTEMAS OPERATIVOS (PASO A PASO) ===\n")
     
     # 1. Entrada de archivo
