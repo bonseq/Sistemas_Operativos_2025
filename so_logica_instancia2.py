@@ -54,20 +54,29 @@ class Simulador:
         return count
 
     def tick(self):
+        max_particion_sistema = max([p.tam for p in self.particiones_usuario]) if self.particiones_usuario else 0
+
         if not (self.nuevos or self.cola_listos or self.cola_suspendidos or self.cpu):
             self.simulacion_activa = False #desactivamos la simulacion cuando todas  las colas esten vacias
             return self.get_estado_actual() #devolvemos el ultimo reporte antes de cerrar
 
         self.log_eventos = []#borramos la lista que muestra os eventos
-
+ 
         #loop principal: entrada al so (controla multiprogramacion)
         while self.nuevos and self.nuevos[0].arribo <= self.tiempo: #revisamos si hay procesos en nuevo y si al primero le toca entrar segun el tiempo
+            p = self.nuevos[0] #si es asi, miramos al que este
+            if p.tam > max_particion_sistema: #en caso deque su tamaño supere una particion, 
+                p=self.nuevos.pop(0) #lo sacamos
+                p.t_fin= None #DIRECTAMNETE NO LE ASIGNAMOS TIEMPO
+                self.log_eventos.append(f"t={self.tiempo}: ERROR - {p.pid} ({p.tam}K) excede RAM máxima") #infromamos error
+                p.estado = "Rechazado"
+                self.terminados.append(p) #terminados
+                continue #saltamos al siguiente proceso
             if self._get_procesos_en_sistema() < self.grado_multiprogramacion: #preguntamos si el numero de procesos en sistema es menor a el GDM
-                p = self.nuevos.pop(0) #si es asi, sacamos al proceso de la lista de nuevos 
-                # asigna memoria memoria
+                p = self.nuevos.pop(0) #si es asi, miramos al que este
                 posibles = [part for part in self.particiones_usuario if part.libre() and part.tam >= p.tam] #creamos el listado de posibles particiones para nuestro p
                 if posibles: #si esta lista existe :
-                    mejor_p = min(posibles, key=lambda x: x.tam) #buscamos el minimo
+                    mejor_p = min(posibles, key=lambda x: x.tam) #buscamos el minimo sgeun best-fit
                     mejor_p.proceso = p #asignamos el proceso
                     p.particion = mejor_p #luego le pasamosla informacion de la particion que pcupa
                     p.estado = "Listo" #pasa a listo eserando cpu
