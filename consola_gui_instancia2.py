@@ -78,7 +78,6 @@ def print_ascii_art():
     print(Style.RESET_ALL)
 
 def print_hacker_status():
-    """Línea tipo [ACCESS GRANTED] con fecha, hora y usuario"""
     usuario = getpass.getuser()
     hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     ancho = 100
@@ -90,7 +89,6 @@ def print_hacker_status():
     print(mensaje.center(ancho))
 
 def print_banner():
-    """Cuadro con nombre del grupo, facultad y lista de integrantes"""
     ancho = 60
     print()
     print(Fore.CYAN + "╔" + "═" * (ancho - 2) + "╗")
@@ -109,19 +107,18 @@ def limpiar_pantalla():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def cargar_datos(nombre_archivo):
-    """Lee el archivo .txt y devuelve objetos Proceso"""
-    procesos = []
+    procesos = [] #lista donde carga los proceso q vengan en el txt
     try:
-        with open(nombre_archivo, 'r') as f:
+        with open(nombre_archivo, 'r') as f: #abrimos en modo lectura siendo f la ventana
             for linea in f:
-                linea = linea.strip()
-                if not linea or "[" in linea: continue
-                datos = linea.split(',')
+                linea = linea.strip() #limpiamos saltos o inicio y final
+                if not linea or "[" in linea: continue #ignora lineas vacias
+                datos = linea.split(',') #limpiamos comas
                 if len(datos) == 4:
-                    # Formato: ID, Arribo, Tam, Irrupción
-                    pid, arribo, tam, irr = datos[0].strip(), int(datos[1]), int(datos[2]), int(datos[3])
-                    procesos.append(Proceso(pid, arribo, tam, irr))
-        return procesos
+                    # formato: ID, Arribo, Tam, Irrupción
+                    pid, arribo, tam, irr = datos[0].strip(), int(datos[1]), int(datos[2]), int(datos[3]) #datos 1 2 3 y 4
+                    procesos.append(Proceso(pid, arribo, tam, irr)) #instanciamos todos lo proceosos y los añadimos a la lista q se creo mas arriba
+        return procesos #devolvemos la lista al simulador 
     except FileNotFoundError:
         print(f"Error: No se encontró el archivo '{nombre_archivo}'")
         return None
@@ -177,38 +174,35 @@ def mostrar_estadisticas(sim):
     print(f"{'ID':<6} | {'ARR':<5} | {'IRR':<5} | {'FIN':<5} | {'RET (TR)':<8} | {'ESP (TE)':<8}")
     print("-" * 60)
     
-    total_tr, total_te = 0, 0
-    procesos_ejecutados = [p for p in sim.terminados if p.estado == "Terminado"]
-    terminados_dos = sorted(sim.terminados, key=lambda x: x.pid)
+    total_tr, total_te = 0, 0 #inicializamos tiempos 
+    procesos_ejecutados = [p for p in sim.terminados if p.estado == "Terminado"] #filtramos procesos por terminados correctamente
+    terminados_dos = sorted(sim.terminados, key=lambda x: x.pid) #ordenamsos para mostrar la tabla final
     
     for p in terminados_dos:
-        if p.estado == "Rechazado":
-            # Si fue rechazado, mostramos guiones
+        if p.estado == "Rechazado": #si proceso rechazado entonces muestra guiones
             print(f"{p.pid:<6} | {p.arribo:<5} | {p.irrupcion_original:<5} | {'---':<5} | {'---':<8} | {'---':<8}")
         else:
-            # Cálculos académicos normales
+            # sino calcula e imprime normalmente los estadisticos
             tr = p.t_fin - p.arribo
             te = tr - p.irrupcion_original
             print(f"{p.pid:<6} | {p.arribo:<5} | {p.irrupcion_original:<5} | {p.t_fin:<5} | {tr:<8} | {te:<8}")
             total_tr += tr
             total_te += te
     
-    cant_valida = len(procesos_ejecutados)
+    cant_valida = len(procesos_ejecutados) # cuenta la cantidad de procesos
     print("-" * 60)
     
-    if cant_valida > 0:
+    if cant_valida > 0: #verificamos que sea mayor a scero por las divisiones:
         print(f" > Tiempo de retorno promedio (TR): {total_tr/cant_valida:.2f}")
         print(f" > Tiempo de espera promedio (TE) : {total_te/cant_valida:.2f}")
         # El rendimiento usa el tiempo total del simulador
         print(f" > Rendimiento del Sistema        : {cant_valida/sim.tiempo:.4f} proc/u.t.")
-    else:
-        print(" > No hay procesos ejecutados válidos para promediar.")
     print("="*60)
 
-def main():
+def main(): #el main que dispara nuestro simulador
     limpiar_pantalla()
     print_ascii_art()
-    print_banner()
+    print_banner()  #imprimimos toa la presentacion
     
     print("=== SIMULADOR DE SISTEMAS OPERATIVOS (PASO A PASO) ===\n")
     
@@ -219,16 +213,13 @@ def main():
     if not procesos:
         return
 
-    # 2. Configuración de Particiones (Best Fit)
+    # instanciamos las particiones
     particiones = [
         Particion("SO", 0, 100), Particion("1", 100, 250),
         Particion("2", 350, 150), Particion("3", 500, 50)
     ]
-    
-    sim = Simulador(procesos, particiones, grado_multi=5)
-    
-    # 3. Loop Interactivo
-    while sim.simulacion_activa:
+    sim = Simulador(procesos, particiones, grado_multi=5) #instanciamos el simulador
+    while sim.simulacion_activa:  #mientras la simulacion este activa ira mostrando su estado tick a tick
         estado = sim.tick()
         limpiar_pantalla()
         imprimir_dashboard(estado, sim)
